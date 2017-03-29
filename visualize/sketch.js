@@ -5,7 +5,7 @@ Converted to tf-idf matrix, then clustered by t-SNE.
 
 // first time you load the data, the exact positions have to be adjusted so set adjust to true
 // after that, move the downloaded adjusted json file to the sketch folder and set adjust to be false
-var filename = 'data_political';
+var filename = 'data';
 var adjust = false;
 
 // parameters
@@ -154,17 +154,39 @@ function drawInfoText(txt, x, y, link) {
   pop();
 }
 
+function rainbow(numOfSteps, step) {
+    // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+    // Adam Cole, 2011-Sept-14
+    // HSV to RBG adapted from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+    var r, g, b;
+    var h = step / numOfSteps;
+    var i = ~~(h * 6);
+    var f = h * 6 - i;
+    var q = 1 - f;
+    switch(i % 6){
+        case 0: r = 1; g = f; b = 0; break;
+        case 1: r = q; g = 1; b = 0; break;
+        case 2: r = 0; g = 1; b = f; break;
+        case 3: r = 0; g = q; b = 1; break;
+        case 4: r = f; g = 0; b = 1; break;
+        case 5: r = 1; g = 0; b = q; break;
+    }
+    var c = [r*255, g*255, b*255]
+    //var c = "#" + ("00" + (~ ~(r * 255)).toString(16)).slice(-2) + ("00" + (~ ~(g * 255)).toString(16)).slice(-2) + ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
+    return (c);
+}
+
 function drawScreen() {
   background(255);
   
   // draw info box
-  push();
-  fill(0, 15);
-  rect(tx-20, ty-40, 500, 200)
-  for (var i=0; i<info.length; i++) {
-    drawInfoText(info[i].txt, info[i].x, info[i].y, info[i].link);
-  }
-  pop();
+  //push();
+  //fill(0, 15);
+  //rect(tx-20, ty-40, 500, 200)
+  //for (var i=0; i<info.length; i++) {
+  //  drawInfoText(info[i].txt, info[i].x, info[i].y, info[i].link);
+  //}
+  //pop();
   
   // draw boxes
   push();
@@ -177,18 +199,29 @@ function drawScreen() {
     noStroke();
     if (i == highlighted) {
       fill(0, 0, 150);
-      text(boxes[i].txt, boxes[i].x + margin.box, boxes[i].y + txtSize + margin.box);
+      text(boxes[i].txt, boxes[i].x + margin.box - boxes[i].w/2, boxes[i].y + txtSize + margin.box - boxes[i].h/2);
       stroke(0, 0, 255);
       strokeWeight(3);
     }
     else {
       fill(0);
-      text(boxes[i].txt, boxes[i].x + margin.box, boxes[i].y + txtSize + margin.box);
+      text(boxes[i].txt, boxes[i].x + margin.box - boxes[i].w/2, boxes[i].y + txtSize + margin.box - boxes[i].h/2);
       stroke(0, 80);
       strokeWeight(1);
     }
     noFill();
-    rect(boxes[i].x, boxes[i].y, boxes[i].w, boxes[i].h);
+    rect(boxes[i].x - boxes[i].w/2, boxes[i].y - boxes[i].h/2, boxes[i].w, boxes[i].h);
+  }
+
+  // draw paths
+  var plen = data.paths.length
+  for (var path=0; path<plen; path++) {
+    var color = rainbow(plen, path+1)
+    stroke(color[0], color[1], color[2]);
+    for (var point=0; point<data.paths[path].length-1; point++) {
+      strokeWeight(3);
+      line(data.paths[path][point][0], data.paths[path][point][1], data.paths[path][point+1][0], data.paths[path][point+1][1])
+    }
   }
   pop();
 }
